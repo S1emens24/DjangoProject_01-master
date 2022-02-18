@@ -1,0 +1,97 @@
+python manage.py shell
+
+from news.models import *
+
+# Создать двух пользователей (с помощью метода User.objects.create_user). (Semyon and Vlad)
+# Создать два объекта модели Author, связанные с пользователями.
+user1 = User.objects.create(username='Semyon', first_name='Blokhin')
+Author.objects.create(authorUser=user1)
+user2 = User.objects.create(username='Vlad', first_name='Bondarenko')
+Author.objects.create(authorUser=user2)
+
+
+# Добавить 4 категории в модель Category.
+Category.objects.create(name='IT')
+Category.objects.create(name='Dreams')
+Category.objects.create(name='Sport')
+Category.objects.create(name='News')
+
+
+# Добавить 2 статьи и 1 новость.
+Post.objects.create(author=Author.objects.get(authorUser=User.objects.get(username='Semyon')), categoryType='NW', title='smth title', text='smth text')
+Post.objects.create(author=Author.objects.get(authorUser=User.objects.get(username='Semyon')), categoryType='AR', title='1234 title', text='1234 text')
+Post.objects.create(author=Author.objects.get(authorUser=User.objects.get(username='Vlad')), categoryType='AR', title='5678 title', text='5678 text')
+
+
+# Назначение категорий
+# get posts
+p1 = Post.objects.get(pk=1)
+p2 = Post.objects.get(pk=2)
+p3 = Post.objects.get(pk=3)
+
+# get categories
+c1 = Category.objects.get(name='Dreams')
+c2 = Category.objects.get(name='News')
+
+p1.PostCategory.add(c1)
+p2.PostCategory.add(c1, c2)  
+p3.PostCategory.add(c2)
+
+
+# Далее добавляем комментарий
+# получаем пользователя и указываем, к какому посту относится комментарий
+Comment.objects.create(commentUser=User.objects.get(username='Semyon'), commentPost=Post.objects.get(pk=1), text='comment from Semyon on post 1')
+Comment.objects.create(commentUser=User.objects.get(username='Semyon'), commentPost=Post.objects.get(pk=2), text='comment from Semyon on post 2')
+Comment.objects.create(commentUser=User.objects.get(username='Semyon'), commentPost=Post.objects.get(pk=3), text='comment from Semyon on post 3')
+Comment.objects.create(commentUser=User.objects.get(username='Vlad'), commentPost=Post.objects.get(pk=1), text='comment from Vlad on post 1')
+Comment.objects.create(commentUser=User.objects.get(username='Vlad'), commentPost=Post.objects.get(pk=2), text='comment from Vlad on post 2')
+Comment.objects.create(commentUser=User.objects.get(username='Vlad'), commentPost=Post.objects.get(pk=3), text='comment from Vlad on post 3')
+
+
+# Применяя функции like() и dislike() к статьям/новостям и комментариям
+Post.objects.get(pk=1).like()
+Post.objects.get(pk=2).like()
+Post.objects.get(pk=3).like()
+Post.objects.get(pk=3).dislike()
+
+Comment.objects.get(pk=1).like()
+Comment.objects.get(pk=3).like()
+Comment.objects.get(pk=3).dislike()
+Comment.objects.get(pk=3).dislike()
+Comment.objects.get(pk=2).dislike()
+Comment.objects.get(pk=2).like()
+
+
+# Обновляем рейтинг пользователей
+Author.objects.get(authorUser=User.objects.get(username='Semyon')).update_rating()
+Author.objects.get(authorUser=User.objects.get(username='Vlad')).update_rating()
+
+a = Author.objects.get(authorUser=User.objects.get(username='Semyon'))
+a.ratingAuthor
+
+Author.objects.get(authorUser=User.objects.get(username='Vlad')).ratingAuthor
+
+
+# имя пользователя и рейтинг лучшего пользователя
+best = Author.objects.all().order_by('-ratingAuthor').values('authorUser', 'ratingAuthor')[0]
+userId = list(best.values())[0]
+userRat = list(best.values())[1]
+username = User.objects.get(pk=userId)
+print(f'{username}: {userRat}')
+
+
+#Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье.
+bestPost = Post.objects.all().order_by('-rating').values('dateCreation', 'author', 'rating', 'title', 'id')[0]
+dateAdd = list(bestPost.values())[0]
+author = list(bestPost.values())[1]
+username = User.objects.get(pk=author)
+rating = list(bestPost.values())[2]
+title = list(bestPost.values())[3]
+preview = Post.objects.get(title=title, author=author).preview()
+postId = list(bestPost.values())[4]
+print(f'{dateAdd}; {username}; {rating}; {title}; {preview}')
+
+
+# Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+commentsBestPost = Comment.objects.filter(commentPost=postId).values('dateCreation', 'commentUser', 'rating', 'text')   
+print(commentsBestPost)
