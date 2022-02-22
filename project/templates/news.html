@@ -1,0 +1,56 @@
+<!--  наследуемся от шаблона default.html, который мы создавали ещё во времена flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %} <!-- не забываем заранее загружать наши фильтры! -->
+ 
+<!-- Название у нас будет news -->
+{% block title %}
+News
+{% endblock title %}
+ 
+
+<!-- В контенте на странице мы выводим все новости -->
+{% block content %}
+    <h1>Все новости!</h1>
+    <h2>Всего Новостей: {{ news|length }}</h2>
+    <h3>{{ time_now|date:'M d Y H:m:s' }}</h3> <!-- Здесь мы применяем фильтр date. Он очень похож на метод strftime у даты. С его помощью мы можем выводить дату в нужном нам формате -->
+    <h3> {{ value1|default_if_none:"Ничего" }} </h3> <!-- Здесь, если в переменной value1 будет записано None, то выведется текст НИЧЕГО -->
+    <hr>
+    {% if news %} <!-- Если есть новости, то выводим таблицу с ними -->
+        <table>
+            <tr>
+                <td>
+                    Название
+                </td>
+                <td>
+                    Дата Загрузки
+                </td>
+                <td>
+                    Описание
+                </td>
+                <td>
+                    Категория
+                </td>
+            </tr>
+            {% for news in news %}
+            <tr>
+                <td>
+                    {{ news.name|censor }}
+                </td>
+                <td>
+                    {{ time_now|date:'d M Y H:m' }}
+                </td>
+                <td>
+                    {{ news.description|censor|truncatechars:50 }} <!-- дописываем специальный фильтр, чтобы ограничить количество символов до 50. Все остальные символы превратятся в многоточие. -->
+                </td>
+                <td>
+                    {{ news.category.name }}
+                </td>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <h2>Товаров нет!</h2>
+    {% endif %}
+{% endblock content %}

@@ -1,0 +1,18 @@
+<!--  наследуемся от шаблона default.html, который мы создавали ещё во времена flatpages -->
+{% extends 'flatpages/default.html' %} 
+
+{% load custom_filters %}
+ 
+<!-- Название у нас будет news -->
+{% block title %}
+News
+{% endblock title %}
+ 
+<!-- В контенте на странице мы выводим саму новость, айди которой было передано в адрес -->
+{% block content %}
+<b>Дата и время публикации: {{ time_now|date:'M d Y H:m' }}</b><br><br>
+
+{{ news.name|censor }}<br><br>
+{{ news.description|censor }}
+
+{% endblock content %}
